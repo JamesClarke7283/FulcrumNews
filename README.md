@@ -14,6 +14,27 @@ Built with **Quart** (async), **LangGraph** + **LangChain** (→ OpenRouter),
 
 ---
 
+## Screenshots
+
+### The feed — stories across the spectrum
+Each clustered story shows a left/center/right bias bar, a Blindspot badge when one
+side under-covers it, and per-bucket source counts. Filter by lean, blindspots, and
+minimum sources.
+
+![FulcrumNews story feed](screenshots/Dashboard.png)
+
+### Blindspots
+Surface stories that one side of the spectrum is under-reporting.
+
+![Blindspot stories](screenshots/Blindspots.png)
+
+### Outlets
+The roster grouped by political lean — fully editable from the admin UI.
+
+![Outlets by lean](screenshots/Outlets.png)
+
+---
+
 ## Requirements
 
 - **Python ≥ 3.14**

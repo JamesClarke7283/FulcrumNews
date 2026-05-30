@@ -295,39 +295,50 @@ async def compute_bias_blindspot(state: PipelineState) -> PipelineState:
 
 # ── 7. summarize_cluster ─────────────────────────────────────────────────────
 async def summarize_cluster(state: PipelineState) -> PipelineState:
-    story_ids = state.get("touched_story_ids") or []
+    # Summarize EVERY stale story (not just ones touched this run) at/above the gate,
+    # so a re-run backfills any missing summaries. Default gate = 1 ⇒ all stories.
+    gate = settings.summary_min_sources
+    query = Story.filter(summary_stale=True, source_count__gte=gate).order_by("-source_count")
+    candidates = await query
+    if settings.max_summaries_per_run > 0:
+        candidates = candidates[: settings.max_summaries_per_run]
+    if not candidates:
+        return {"stats": _merge_stats(state, summarized=0)}
+
+    sem = asyncio.Semaphore(settings.summary_concurrency)
+
+    async def generate(story: Story):
+        """Run the (slow) LLM call concurrently; return the briefing or None."""
+        async with sem:
+            arts = await Article.filter(story_id=story.id).prefetch_related("outlet")
+            by_outlet: dict[int, Article] = {}
+            for a in arts:
+                cur = by_outlet.get(a.outlet_id)
+                if cur is None or len(a.body or "") > len(cur.body or ""):
+                    by_outlet[a.outlet_id] = a
+            inputs = [
+                summarize.ArticleInput(
+                    outlet_name=a.outlet.name,
+                    lean_label=a.outlet.lean.label,
+                    body=a.body or a.snippet or a.title,
+                )
+                for a in by_outlet.values()
+            ]
+            if not inputs:
+                return story, None
+            try:
+                return story, await summarize.summarize_story(story.canonical_title, inputs)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("summarize failed for story %s: %s", story.id, e)
+                return story, None
+
+    results = await asyncio.gather(*(generate(s) for s in candidates))
+
+    # Serialize the writes (SQLite single-writer).
     summarized = 0
-
-    # Bound cost/time: summarize the most-corroborated stale stories first, up to a cap.
-    candidates = await Story.filter(
-        id__in=story_ids, summary_stale=True, source_count__gte=2
-    ).order_by("-source_count")
-    candidates = candidates[: settings.max_summaries_per_run]
-
-    for story in candidates:
-        sid = story.id
-        arts = await Article.filter(story_id=sid).prefetch_related("outlet")
-        # one (richest) article per outlet to avoid syndication double-counting
-        by_outlet: dict[int, Article] = {}
-        for a in arts:
-            cur = by_outlet.get(a.outlet_id)
-            if cur is None or len(a.body or "") > len(cur.body or ""):
-                by_outlet[a.outlet_id] = a
-
-        inputs = [
-            summarize.ArticleInput(
-                outlet_name=a.outlet.name,
-                lean_label=a.outlet.lean.label,
-                body=a.body or a.snippet or a.title,
-            )
-            for a in by_outlet.values()
-        ]
-        try:
-            briefing = await summarize.summarize_story(story.canonical_title, inputs)
-        except Exception as e:  # noqa: BLE001
-            logger.warning("summarize failed for story %s: %s", sid, e)
+    for story, briefing in results:
+        if briefing is None:
             continue
-
         story.ai_summary = briefing.summary
         story.ai_key_points = briefing.key_points
         story.ai_differences = briefing.where_they_differ

@@ -65,7 +65,12 @@ class Settings(BaseSettings):
     # Scheduler / server
     # Volume controls (matter once you have many outlets).
     rss_max_items: int = Field(default=20, alias="RSS_MAX_ITEMS")
-    max_summaries_per_run: int = Field(default=40, alias="MAX_SUMMARIES_PER_RUN")
+    # Summaries: every story with >= this many sources gets one (1 = all stories).
+    summary_min_sources: int = Field(default=1, alias="SUMMARY_MIN_SOURCES")
+    # 0 = no cap (summarize all stale qualifying stories).
+    max_summaries_per_run: int = Field(default=0, alias="MAX_SUMMARIES_PER_RUN")
+    # Concurrent LLM summary calls (DB writes stay serialized).
+    summary_concurrency: int = Field(default=6, alias="SUMMARY_CONCURRENCY")
     refresh_interval_hours: float = Field(default=3, alias="REFRESH_INTERVAL_HOURS")
     admin_token: str = Field(default="", alias="ADMIN_TOKEN")
     host: str = Field(default="0.0.0.0", alias="HOST")
