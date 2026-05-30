@@ -280,6 +280,7 @@ async def assign_clusters(state: PipelineState) -> PipelineState:
 
 # ── 6. compute_bias_blindspot ────────────────────────────────────────────────
 async def compute_bias_blindspot(state: PipelineState) -> PipelineState:
+    progress.status("Summarizing & formatting…")  # the next two nodes run concurrently
     story_ids = state.get("touched_story_ids") or []
     for sid in story_ids:
         rows = await Article.filter(story_id=sid).values("outlet_id", "outlet__lean")
