@@ -6,13 +6,13 @@
 
   <form method="post"
         action="{{ url_for('admin.outlet_update', slug=outlet.slug) if outlet else url_for('admin.outlet_create') }}"
-        class="mt-5 max-w-xl space-y-5 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+        class="mt-5 max-w-xl space-y-5 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
     <input type="hidden" name="token" value="{{ token }}">
 
     <div>
       <label class="block text-sm font-medium text-neutral-700">Name</label>
       <input name="name" required value="{{ outlet.name if outlet else '' }}"
-             class="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none">
+             class="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
     </div>
 
     <div>
@@ -20,7 +20,7 @@
       <div class="mt-1 flex gap-2">
         <input id="feed_url" name="feed_url" type="url" required value="{{ outlet.feed_url if outlet else '' }}"
                placeholder="https://example.com/rss"
-               class="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none">
+               class="w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
         <button type="button" id="verify-btn"
                 class="shrink-0 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700">
           Verify feed
@@ -32,7 +32,7 @@
     <div>
       <label class="block text-sm font-medium text-neutral-700">Political lean</label>
       <select name="lean"
-              class="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none">
+              class="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
         {% for l in leans %}
           <option value="{{ l.value }}" {{ 'selected' if outlet and outlet.lean == l else ('selected' if not outlet and l.name == 'CENTER' else '') }}>
             {{ l.label }}
@@ -45,7 +45,7 @@
     <div>
       <label class="block text-sm font-medium text-neutral-700">Homepage (optional)</label>
       <input name="homepage" type="url" value="{{ outlet.homepage if outlet and outlet.homepage else '' }}"
-             class="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none">
+             class="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 focus:border-brand-600 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
     </div>
 
     <label class="flex items-center gap-2 text-sm">

@@ -21,11 +21,13 @@ from quart import (
     url_for,
 )
 
+from ... import runtime
 from ...config import settings
-from ...models import Outlet
+from ...models import Article, Outlet, Story
 from ...models.enums import FeedType, Lean
 from ...scheduler import last_run, refresh_now
 from ...services.discovery.verify import verify_feed
+from ...vectors import store
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -61,10 +63,14 @@ async def _unique_slug(name: str, *, exclude_id: int | None = None) -> str:
 @bp.get("/")
 async def dashboard():
     outlet_count = await Outlet.filter(enabled=True).count()
+    story_count = await Story.filter(source_count__gte=2).count()
     return await render_template(
         "admin/dashboard.html",
         last_run=last_run,
         outlet_count=outlet_count,
+        story_count=story_count,
+        window_days=runtime.get_window_days(),
+        max_window_days=round(settings.cluster_max_window_hours / 24),
         token=settings.admin_token,
     )
 
@@ -75,6 +81,26 @@ async def refresh():
     if request.headers.get("Accept", "").startswith("application/json"):
         return jsonify({"status": "started"}), 202
     return redirect(url_for("admin.dashboard", **_token_arg(), started=1))
+
+
+@bp.post("/settings")
+async def update_settings():
+    """Tweak the clustering/exploration window (days)."""
+    form = await request.form
+    try:
+        runtime.set_window_days(float(form.get("window_days", runtime.get_window_days())))
+    except (TypeError, ValueError):
+        pass
+    return redirect(url_for("admin.dashboard", **_token_arg(), saved=1))
+
+
+@bp.post("/clear")
+async def clear_cache():
+    """Wipe all articles, stories, and vectors (keeps the outlet roster)."""
+    await Article.all().delete()
+    await Story.all().delete()
+    await store.clear()
+    return redirect(url_for("admin.dashboard", **_token_arg(), cleared=1))
 
 
 # ── Outlet management ────────────────────────────────────────────────────────
@@ -123,7 +149,7 @@ async def outlet_create():
     feed_url = (form.get("feed_url") or "").strip()
     if not name or not feed_url:
         abort(400)
-    await Outlet.create(
+    outlet = await Outlet.create(
         name=name,
         slug=await _unique_slug(name),
         lean=_form_lean(form),
@@ -132,6 +158,9 @@ async def outlet_create():
         homepage=(form.get("homepage") or "").strip() or None,
         enabled=form.get("enabled") == "on",
     )
+    # Pull the new outlet's articles right away so they connect to existing stories.
+    if outlet.enabled:
+        current_app.add_background_task(refresh_now)
     return redirect(url_for("admin.outlets", **_token_arg()))
 
 

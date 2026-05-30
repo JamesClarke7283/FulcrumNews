@@ -17,7 +17,8 @@ class Article(Model):
     url = fields.CharField(max_length=1024, unique=True)  # canonicalized
     title = fields.CharField(max_length=512)
     author = fields.CharField(max_length=256, null=True)
-    body = fields.TextField(null=True)  # plaintext
+    body = fields.TextField(null=True)  # plaintext (Trafilatura / Guardian)
+    body_md = fields.TextField(null=True)  # LLM-cleaned Markdown for display
     snippet = fields.CharField(max_length=1024, null=True)
     content_hash = fields.CharField(max_length=64, null=True, db_index=True)  # sha256(body)
     lance_id = fields.CharField(max_length=64, null=True, unique=True)  # LanceDB row id

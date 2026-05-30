@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+import markdown as _markdown
+import nh3
 from markupsafe import Markup, escape
 
 from ..bias import bucket_of
@@ -47,6 +49,22 @@ def _timeago(dt: datetime | None) -> str:
     return f"{days}d ago" if days < 7 else dt.strftime("%d %b %Y")
 
 
+_MD_TAGS = {
+    "p", "br", "strong", "em", "b", "i", "u", "blockquote", "h2", "h3", "h4",
+    "ul", "ol", "li", "a", "code", "pre", "hr", "span",
+}
+
+
+def _markdown_html(text: str | None) -> Markup:
+    """Render Markdown → sanitized HTML (for LLM-formatted article bodies)."""
+    if not text:
+        return Markup("")
+    html = _markdown.markdown(str(text), extensions=["extra", "sane_lists"])
+    # nh3 manages link rel safety itself (default rel="noopener noreferrer").
+    clean = nh3.clean(html, tags=_MD_TAGS, attributes={"a": {"href", "title"}})
+    return Markup(clean)
+
+
 def _nl2br(text: str | None) -> Markup:
     if not text:
         return Markup("")
@@ -60,3 +78,4 @@ def register_filters(app) -> None:
     app.jinja_env.filters["lean_label"] = _lean_label
     app.jinja_env.filters["timeago"] = _timeago
     app.jinja_env.filters["nl2br"] = _nl2br
+    app.jinja_env.filters["markdown"] = _markdown_html

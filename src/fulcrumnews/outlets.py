@@ -221,4 +221,27 @@ DEFAULT_OUTLET_ROSTER: list[dict] = [
     _rss("The Washington Times", "washtimes", Lean.RIGHT, "https://www.washingtontimes.com/rss/headlines/news/politics/", "https://www.washingtontimes.com"),
     _rss("The Daily Wire", "dailywire", Lean.RIGHT, "https://www.dailywire.com/feeds/rss.xml", "https://www.dailywire.com"),
     _rss("Breitbart", "breitbart", Lean.RIGHT, "https://feeds.feedburner.com/breitbart", "https://www.breitbart.com"),
+    # ── International ─────────────────────────────────────────────────────────
+    _rss("DW (Deutsche Welle)", "dw", Lean.CENTER, "https://rss.dw.com/rdf/rss-en-all", "https://www.dw.com"),
+    _rss("France 24", "france24", Lean.CENTER, "https://www.france24.com/en/rss", "https://www.france24.com/en/"),
+    _rss("ABC News (Australia)", "abcau", Lean.CENTER, "https://www.abc.net.au/news/feed/51120/rss.xml", "https://www.abc.net.au/news"),
+    # ── More US ──────────────────────────────────────────────────────────────
+    _rss("The Atlantic", "theatlantic", Lean.LEFT, "https://www.theatlantic.com/feed/all/", "https://www.theatlantic.com"),
+    _rss("The New Yorker", "newyorker", Lean.LEFT, "https://www.newyorker.com/feed/everything", "https://www.newyorker.com"),
+    _rss("Salon", "salon", Lean.LEFT, "https://www.salon.com/feed/", "https://www.salon.com"),
+    _rss("Jacobin", "jacobin", Lean.LEFT, "https://jacobin.com/feed/", "https://jacobin.com"),
+    _rss("The Daily Beast", "dailybeast", Lean.LEFT, "https://www.thedailybeast.com/arc/outboundfeeds/rss/", "https://www.thedailybeast.com"),
+    _rss("Common Dreams", "commondreams", Lean.LEFT, "https://www.commondreams.org/feeds/news.rss", "https://www.commondreams.org"),
+    _rss("ProPublica", "propublica", Lean.LEAN_LEFT, "https://www.propublica.org/feeds/propublica/main", "https://www.propublica.org"),
+    _rss("Axios", "axios", Lean.CENTER, "https://api.axios.com/feed/", "https://www.axios.com"),
+    _rss("CNBC", "cnbc", Lean.CENTER, "https://www.cnbc.com/id/100003114/device/rss/rss.html", "https://www.cnbc.com"),
+    _rss("Business Insider", "businessinsider", Lean.CENTER, "https://www.businessinsider.com/rss", "https://www.businessinsider.com"),
+    _rss("Reason", "reason", Lean.LEAN_RIGHT, "https://reason.com/latest/feed/", "https://reason.com"),
+    _rss("Washington Free Beacon", "freebeacon", Lean.RIGHT, "https://freebeacon.com/feed/", "https://freebeacon.com"),
+    # ── More UK ──────────────────────────────────────────────────────────────
+    _rss("Left Foot Forward", "leftfootforward", Lean.LEFT, "https://leftfootforward.org/feed/", "https://leftfootforward.org"),
+    _rss("PinkNews", "pinknews", Lean.LEFT, "https://www.thepinknews.com/feed/", "https://www.thepinknews.com"),
+    _rss("spiked", "spiked", Lean.LEAN_RIGHT, "https://www.spiked-online.com/feed/", "https://www.spiked-online.com"),
+    _rss("The Critic", "thecritic", Lean.LEAN_RIGHT, "https://thecritic.co.uk/feed/", "https://thecritic.co.uk"),
+    _rss("ConservativeHome", "conservativehome", Lean.RIGHT, "https://conservativehome.com/feed", "https://conservativehome.com"),
 ]

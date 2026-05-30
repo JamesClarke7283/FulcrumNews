@@ -32,6 +32,21 @@ def _ensure_db_dir() -> None:
         os.makedirs(db_dir, exist_ok=True)
 
 
+async def _ensure_columns() -> None:
+    """Add columns that ``generate_schemas(safe=True)`` won't add to existing tables.
+
+    A tiny stand-in for migrations so an existing DB self-heals on startup.
+    """
+    conn = Tortoise.get_connection("default")
+    expected = {"article": {"body_md": "TEXT"}}
+    for table, cols in expected.items():
+        existing = {r["name"] for r in await conn.execute_query_dict(f"PRAGMA table_info({table})")}
+        for col, coltype in cols.items():
+            if col not in existing:
+                logger.info("Adding missing column %s.%s", table, col)
+                await conn.execute_query(f"ALTER TABLE {table} ADD COLUMN {col} {coltype}")
+
+
 async def init_db(*, generate_schemas: bool = True) -> None:
     """Initialize Tortoise standalone (CLI / pipeline runner).
 
@@ -42,6 +57,7 @@ async def init_db(*, generate_schemas: bool = True) -> None:
     await Tortoise.init(config=TORTOISE_ORM, _enable_global_fallback=True)
     if generate_schemas:
         await Tortoise.generate_schemas(safe=True)
+        await _ensure_columns()
 
 
 async def close_db() -> None:
@@ -58,6 +74,7 @@ def register_orm(app) -> None:
         # handlers (and the scheduler) run in separate tasks — they need cross-task access.
         await Tortoise.init(config=TORTOISE_ORM, _enable_global_fallback=True)
         await Tortoise.generate_schemas(safe=True)
+        await _ensure_columns()
         await seed_outlets()
 
     @app.after_serving

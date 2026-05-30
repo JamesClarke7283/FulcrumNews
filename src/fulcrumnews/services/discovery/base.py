@@ -59,7 +59,12 @@ def to_utc(dt: datetime | None) -> datetime | None:
 
 def make_client() -> httpx.AsyncClient:
     return httpx.AsyncClient(
-        headers={"User-Agent": settings.user_agent},
+        headers={
+            "User-Agent": settings.user_agent,
+            # Bust intermediary/CDN caches so refreshes pull the freshest items.
+            "Cache-Control": "no-cache, max-age=0",
+            "Pragma": "no-cache",
+        },
         timeout=settings.fetch_timeout_s,
         follow_redirects=True,
     )

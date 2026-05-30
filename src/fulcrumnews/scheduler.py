@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from . import progress
 from .config import settings
 from .graph.pipeline import run_pipeline
 
@@ -28,14 +29,17 @@ async def refresh_now(window_hours: int | None = None) -> dict:
     async with _lock:
         last_run["running"] = True
         last_run["error"] = None
+        progress.start()
         try:
             stats = await run_pipeline(window_hours)
             last_run["stats"] = stats
             last_run["at"] = datetime.now(timezone.utc).isoformat()
+            progress.finish(stats)
             return stats
         except Exception as e:  # noqa: BLE001
             logger.exception("pipeline run failed")
             last_run["error"] = f"{type(e).__name__}: {e}"
+            progress.finish(error=last_run["error"])
             return {"error": last_run["error"]}
         finally:
             last_run["running"] = False

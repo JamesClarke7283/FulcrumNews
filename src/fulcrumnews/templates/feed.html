@@ -9,7 +9,7 @@
   {% if val is none %}{% set _ = a.pop(key, None) %}{% else %}{% set _ = a.update({key: val}) %}{% endif %}
   {% set active = (filters.get(key) == val) or (val is none and not filters.get(key)) %}
   <a href="{{ url_for('feed.feed', **a) }}"
-     class="rounded-full px-3 py-1 text-sm font-medium {{ 'bg-brand-600 text-white' if active else 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100' }}">{{ label }}</a>
+     class="rounded-full px-3 py-1 text-sm font-medium {{ 'bg-brand-600 text-white' if active else 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 dark:ring-neutral-700 dark:hover:bg-neutral-800' }}">{{ label }}</a>
 {% endmacro %}
 
 {% macro minpill(label, val) %}
@@ -19,7 +19,7 @@
   {% set _ = a.update({'min': val}) %}
   {% set active = (cur_min == val) %}
   <a href="{{ url_for('feed.feed', **a) }}"
-     class="rounded-full px-3 py-1 text-sm font-medium {{ 'bg-brand-600 text-white' if active else 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100' }}">{{ label }}</a>
+     class="rounded-full px-3 py-1 text-sm font-medium {{ 'bg-brand-600 text-white' if active else 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-300 dark:ring-neutral-700 dark:hover:bg-neutral-800' }}">{{ label }}</a>
 {% endmacro %}
 
 {% block content %}
@@ -35,7 +35,7 @@
       <div class="flex items-center gap-2">
         <form method="get" action="{{ url_for('feed.feed') }}" class="flex items-center gap-2">
           <input type="search" name="q" value="{{ filters.get('q','') }}" placeholder="Search headlines…"
-                 class="w-40 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:border-brand-600 focus:outline-none sm:w-52">
+                 class="w-40 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:border-brand-600 focus:outline-none sm:w-52 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-neutral-500">
           <button class="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700">Search</button>
         </form>
         <form method="post" action="{{ url_for('feed.refresh') }}">
@@ -72,19 +72,19 @@
 
     <div class="mt-8 flex items-center justify-between text-sm">
       {% if page > 1 %}
-        <a class="rounded-lg bg-white px-4 py-2 font-medium ring-1 ring-neutral-200 hover:bg-neutral-100"
+        <a class="rounded-lg bg-white px-4 py-2 font-medium ring-1 ring-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:ring-neutral-700 dark:hover:bg-neutral-800"
            href="{{ url_for('feed.feed', lean=filters.get('lean'), blindspot=filters.get('blindspot'), q=filters.get('q'), min=filters.get('min'), page=page-1) }}">← Newer</a>
       {% else %}<span></span>{% endif %}
       <span class="text-neutral-400">Page {{ page }} · {{ total }} stories · {{ min_sources }}+ sources</span>
       {% if has_next %}
-        <a class="rounded-lg bg-white px-4 py-2 font-medium ring-1 ring-neutral-200 hover:bg-neutral-100"
+        <a class="rounded-lg bg-white px-4 py-2 font-medium ring-1 ring-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:ring-neutral-700 dark:hover:bg-neutral-800"
            href="{{ url_for('feed.feed', lean=filters.get('lean'), blindspot=filters.get('blindspot'), q=filters.get('q'), min=filters.get('min'), page=page+1) }}">Older →</a>
       {% else %}<span></span>{% endif %}
     </div>
   {% else %}
-    <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center">
-      <p class="text-neutral-500">No stories with {{ min_sources }}+ sources yet.</p>
-      <p class="mt-1 text-sm text-neutral-400">Click <strong>Refresh feeds</strong> above to ingest the latest news, lower the minimum sources, or wait for clustering to find cross-outlet matches.</p>
+    <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center dark:border-neutral-700 dark:bg-neutral-900">
+      <p class="text-neutral-500 dark:text-neutral-400">No stories with {{ min_sources }}+ sources yet.</p>
+      <p class="mt-1 text-sm text-neutral-400 dark:text-neutral-500">Click <strong>Refresh feeds</strong> above to ingest the latest news, lower the minimum sources, or wait for clustering to find cross-outlet matches.</p>
     </div>
   {% endif %}
 {% endblock %}

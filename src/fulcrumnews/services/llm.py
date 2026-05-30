@@ -20,6 +20,8 @@ def get_chat_model() -> ChatOpenAI:
         temperature=settings.summary_temperature,
         max_tokens=settings.summary_max_tokens,
         timeout=settings.llm_timeout_s,
+        # Force valid JSON output (eliminates empty / prose-instead-of-JSON responses).
+        model_kwargs={"response_format": {"type": "json_object"}},
         default_headers={
             "HTTP-Referer": settings.openrouter_referer,
             "X-Title": "FulcrumNews",

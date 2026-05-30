@@ -1,31 +1,31 @@
 {% extends "base.html" %}
 {% block title %}About — FulcrumNews{% endblock %}
 {% block content %}
-  <div class="prose max-w-2xl">
+  <div class="prose max-w-2xl dark:prose-invert">
     <h1 class="text-2xl font-bold">About FulcrumNews</h1>
-    <p class="mt-3 text-neutral-700">FulcrumNews is an open-source, self-hostable alternative to Ground News. It gathers
+    <p class="mt-3 text-neutral-700 dark:text-neutral-300">FulcrumNews is an open-source, self-hostable alternative to Ground News. It gathers
       coverage of the same story from outlets across the political spectrum, groups the articles that
       report the same event, and shows you how balanced (or one-sided) that coverage is.</p>
 
     <h2 class="mt-6 text-lg font-semibold">The bias bar</h2>
-    <p class="mt-2 text-neutral-700">Each story shows a <strong>left / center / right</strong> bar based on the
+    <p class="mt-2 text-neutral-700 dark:text-neutral-300">Each story shows a <strong>left / center / right</strong> bar based on the
       number of distinct outlets from each part of the spectrum covering it. Outlet lean ratings are a
       consensus of <strong>AllSides</strong>, <strong>Media Bias/Fact Check</strong>, and
       <strong>Ad Fontes Media</strong>.</p>
 
     <h2 class="mt-6 text-lg font-semibold">Blindspots</h2>
-    <p class="mt-2 text-neutral-700">A <strong>Blindspot</strong> is flagged when one side of the spectrum
+    <p class="mt-2 text-neutral-700 dark:text-neutral-300">A <strong>Blindspot</strong> is flagged when one side of the spectrum
       substantially under-covers a story that the other side is reporting — so a reader who only follows
       that side would miss it. By default a side is a blindspot when it has fewer than 2 distinct outlets
       or under 15% of the coverage (both tunable).</p>
 
     <h2 class="mt-6 text-lg font-semibold">AI briefings</h2>
-    <p class="mt-2 text-neutral-700">For multi-outlet stories, an AI model writes a neutral briefing of the
+    <p class="mt-2 text-neutral-700 dark:text-neutral-300">For multi-outlet stories, an AI model writes a neutral briefing of the
       shared facts and highlights where coverage diverges. Briefings are model-generated and may contain
       errors — always read the outlets directly, which you can do from each story page.</p>
 
     <h2 class="mt-6 text-lg font-semibold">Sources</h2>
-    <p class="mt-2 text-neutral-700">FulcrumNews uses only free, publicly available feeds (RSS and the
+    <p class="mt-2 text-neutral-700 dark:text-neutral-300">FulcrumNews uses only free, publicly available feeds (RSS and the
       Guardian Open Platform API). Outlets that don't offer a free/legal feed (e.g. Reuters, AFP) are not
       included. You can add, edit, classify, and verify your own outlets from the
       <a class="text-brand-600 underline" href="{{ url_for('outlets.list_outlets') }}">Outlets</a> page.</p>

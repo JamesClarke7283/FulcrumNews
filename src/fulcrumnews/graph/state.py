@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+import operator
+from typing import Annotated, TypedDict
 
 
 class PipelineState(TypedDict, total=False):
@@ -11,4 +12,5 @@ class PipelineState(TypedDict, total=False):
     # article_id -> normalized embedding (this run only; not persisted in state)
     vectors: dict[int, list[float]]
     touched_story_ids: list[int]
-    stats: dict
+    # Merged with `|` so parallel branches (summarize + format) can both update it.
+    stats: Annotated[dict, operator.or_]

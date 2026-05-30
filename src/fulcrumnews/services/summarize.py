@@ -89,6 +89,8 @@ async def summarize_story(title: str, articles: list[ArticleInput]) -> Briefing:
     ]
     resp = await model.ainvoke(messages)
     content = resp.content if isinstance(resp.content, str) else str(resp.content)
+    if not content or not content.strip():
+        raise ValueError("empty LLM response")  # triggers a tenacity retry
     data = _parse_json(content)
 
     key_points = data.get("key_points") or []

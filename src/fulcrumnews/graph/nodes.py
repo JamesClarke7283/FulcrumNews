@@ -9,10 +9,12 @@ import re
 import uuid
 from datetime import datetime, timedelta, timezone
 
+from .. import progress, runtime
 from ..bias import compute_bias
 from ..config import settings
 from ..models import Article, Lean, Outlet, Story
 from ..models.enums import FeedType
+from ..services import format as fmt
 from ..services import summarize
 from ..services.discovery import guardian, rss
 from ..services.discovery.base import content_hash, make_client
@@ -24,9 +26,9 @@ logger = logging.getLogger(__name__)
 
 
 def _merge_stats(state: PipelineState, **kw) -> dict:
-    stats = dict(state.get("stats") or {})
-    stats.update(kw)
-    return stats
+    # Return only this node's delta; the `stats` channel reducer (operator.or_)
+    # accumulates across sequential AND parallel nodes.
+    return dict(kw)
 
 
 def _slugify(title: str) -> str:
@@ -65,6 +67,7 @@ def _embed_text(article: Article) -> str:
 
 # ── 1. fetch_sources ─────────────────────────────────────────────────────────
 async def fetch_sources(state: PipelineState) -> PipelineState:
+    progress.status("Fetching sources…")
     outlets = await Outlet.filter(enabled=True)
     new_ids: list[int] = []
     fetched = 0
@@ -113,6 +116,7 @@ async def fetch_sources(state: PipelineState) -> PipelineState:
 
 # ── 2. extract_bodies ────────────────────────────────────────────────────────
 async def extract_bodies(state: PipelineState) -> PipelineState:
+    progress.status("Extracting article text…")
     ids = state.get("new_article_ids") or []
     articles = await Article.filter(id__in=ids, body__isnull=True)
     if not articles:
@@ -142,6 +146,7 @@ async def extract_bodies(state: PipelineState) -> PipelineState:
 
 # ── 3. embed ─────────────────────────────────────────────────────────────────
 async def embed(state: PipelineState) -> PipelineState:
+    progress.status("Embedding articles…")
     ids = state.get("new_article_ids") or []
     articles = await Article.filter(id__in=ids, embedded=False)
     articles = [a for a in articles if (a.body or a.snippet or a.title)]
@@ -180,10 +185,12 @@ async def cluster(state: PipelineState) -> PipelineState:
     loose = settings.cluster_distance_threshold
     strict = settings.cluster_strict_distance
     min_overlap = settings.cluster_min_title_overlap
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=settings.cluster_window_hours)
+    window_hours = state.get("window_hours") or runtime.get_window_hours()
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=window_hours)
 
     # Process oldest-first so a developing story's earliest article anchors the cluster.
     articles = await Article.filter(id__in=list(vectors.keys())).order_by("published_at")
+    progress.task_total("cluster", len(articles))
     assigned: dict[int, int] = {}  # article_id -> story_id (this batch)
     token_cache: dict[int, set[str]] = {}  # article_id -> significant title tokens
     touched: set[int] = set()
@@ -233,6 +240,7 @@ async def cluster(state: PipelineState) -> PipelineState:
         await article.save(update_fields=["story_id"])
         assigned[article.id] = story_id
         touched.add(story_id)
+        progress.task_step("cluster", article.title)
 
     logger.info("cluster: %d articles into %d stories", len(articles), len(touched))
     return {
@@ -302,6 +310,7 @@ async def summarize_cluster(state: PipelineState) -> PipelineState:
     candidates = await query
     if settings.max_summaries_per_run > 0:
         candidates = candidates[: settings.max_summaries_per_run]
+    progress.task_total("summarize", len(candidates))
     if not candidates:
         return {"stats": _merge_stats(state, summarized=0)}
 
@@ -310,6 +319,7 @@ async def summarize_cluster(state: PipelineState) -> PipelineState:
     async def generate(story: Story):
         """Run the (slow) LLM call concurrently; return the briefing or None."""
         async with sem:
+            progress.task_step("summarize", story.canonical_title)
             arts = await Article.filter(story_id=story.id).prefetch_related("outlet")
             by_outlet: dict[int, Article] = {}
             for a in arts:
@@ -357,3 +367,45 @@ async def summarize_cluster(state: PipelineState) -> PipelineState:
 
     logger.info("summarize_cluster: %d stories summarized", summarized)
     return {"stats": _merge_stats(state, summarized=summarized)}
+
+
+# ── 8. format_bodies (LLM markdown fixup for displayed articles) ──────────────
+async def format_bodies(state: PipelineState) -> PipelineState:
+    if not settings.format_enabled:
+        return {"stats": _merge_stats(state, formatted=0)}
+
+    # Only format articles that will actually be read: those in multi-source stories.
+    query = (
+        Article.filter(body__isnull=False, body_md__isnull=True, story__source_count__gte=2)
+        .order_by("-story__source_count")
+    )
+    articles = await query
+    if settings.format_max_per_run > 0:
+        articles = articles[: settings.format_max_per_run]
+    progress.task_total("format", len(articles))
+    if not articles:
+        return {"stats": _merge_stats(state, formatted=0)}
+
+    sem = asyncio.Semaphore(settings.format_concurrency)
+
+    async def gen(article: Article):
+        async with sem:
+            progress.task_step("format", article.title)
+            try:
+                return article, await fmt.format_body(article.title, article.body)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("format failed for article %s: %s", article.id, e)
+                return article, None
+
+    results = await asyncio.gather(*(gen(a) for a in articles))
+
+    formatted = 0
+    for article, md in results:
+        if not md:
+            continue
+        article.body_md = md
+        await article.save(update_fields=["body_md"])
+        formatted += 1
+
+    logger.info("format_bodies: %d article bodies formatted", formatted)
+    return {"stats": _merge_stats(state, formatted=formatted)}

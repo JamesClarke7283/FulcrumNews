@@ -5,7 +5,7 @@
 {% set pc = (story.center_count / t * 100) | round | int %}
 {% set pr = (story.right_count / t * 100) | round | int %}
 <div role="img" aria-label="Coverage: {{ pl }}% left, {{ pc }}% center, {{ pr }}% right">
-  <div class="flex h-2.5 w-full overflow-hidden rounded-full bg-neutral-200">
+  <div class="flex h-2.5 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
     {% if story.left_count %}<div class="bg-bias-left" style="width: {{ pl }}%"></div>{% endif %}
     {% if story.center_count %}<div class="bg-bias-center" style="width: {{ pc }}%"></div>{% endif %}
     {% if story.right_count %}<div class="bg-bias-right" style="width: {{ pr }}%"></div>{% endif %}

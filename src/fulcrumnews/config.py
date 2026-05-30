@@ -58,19 +58,28 @@ class Settings(BaseSettings):
     cluster_strict_distance: float = Field(default=0.25, alias="CLUSTER_STRICT_DISTANCE")
     # Min shared significant title tokens required to merge in the loose band.
     cluster_min_title_overlap: int = Field(default=2, alias="CLUSTER_MIN_TITLE_OVERLAP")
-    cluster_window_hours: int = Field(default=36, alias="CLUSTER_WINDOW_HOURS")
+    # Default clustering/exploration window = 2 weeks; the refresh button can pick 1–4.
+    cluster_window_hours: int = Field(default=336, alias="CLUSTER_WINDOW_HOURS")
+    cluster_max_window_hours: int = Field(default=672, alias="CLUSTER_MAX_WINDOW_HOURS")
     blindspot_min_sources: int = Field(default=2, alias="BLINDSPOT_MIN_SOURCES")
     blindspot_min_share: float = Field(default=0.15, alias="BLINDSPOT_MIN_SHARE")
 
     # Scheduler / server
-    # Volume controls (matter once you have many outlets).
-    rss_max_items: int = Field(default=20, alias="RSS_MAX_ITEMS")
+    # Volume controls (matter once you have many outlets). High so we grab each feed's
+    # full depth each pull; the 2-week corpus then builds additively across refreshes.
+    rss_max_items: int = Field(default=120, alias="RSS_MAX_ITEMS")
     # Summaries: every story with >= this many sources gets one (1 = all stories).
     summary_min_sources: int = Field(default=1, alias="SUMMARY_MIN_SOURCES")
     # 0 = no cap (summarize all stale qualifying stories).
     max_summaries_per_run: int = Field(default=0, alias="MAX_SUMMARIES_PER_RUN")
     # Concurrent LLM summary calls (DB writes stay serialized).
     summary_concurrency: int = Field(default=6, alias="SUMMARY_CONCURRENCY")
+    # Per-outlet body markdown fixup (LLM cleans extracted text → Markdown for display).
+    format_enabled: bool = Field(default=True, alias="FORMAT_ENABLED")
+    format_max_tokens: int = Field(default=6000, alias="FORMAT_MAX_TOKENS")
+    format_concurrency: int = Field(default=6, alias="FORMAT_CONCURRENCY")
+    # 0 = no cap. Only articles in multi-source (shown) stories are formatted.
+    format_max_per_run: int = Field(default=150, alias="FORMAT_MAX_PER_RUN")
     refresh_interval_hours: float = Field(default=3, alias="REFRESH_INTERVAL_HOURS")
     admin_token: str = Field(default="", alias="ADMIN_TOKEN")
     host: str = Field(default="0.0.0.0", alias="HOST")

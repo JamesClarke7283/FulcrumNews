@@ -14,6 +14,12 @@ async def detail(slug: str):
     story = await Story.get_or_none(slug=slug).prefetch_related("articles__outlet")
     if story is None:
         abort(404)
-    # Order articles left → right by outlet lean.
-    articles = sorted(story.articles, key=lambda a: int(a.outlet.lean))
+    # One (richest-body) article per outlet, ordered left → right by lean — so an
+    # outlet that published several articles on the story shows a single tab.
+    by_outlet: dict[int, object] = {}
+    for a in story.articles:
+        cur = by_outlet.get(a.outlet_id)
+        if cur is None or len(a.body or "") > len(cur.body or ""):
+            by_outlet[a.outlet_id] = a
+    articles = sorted(by_outlet.values(), key=lambda a: int(a.outlet.lean))
     return await render_template("story.html", story=story, articles=articles)

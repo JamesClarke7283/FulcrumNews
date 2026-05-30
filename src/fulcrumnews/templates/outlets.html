@@ -10,10 +10,10 @@
     </h2>
     <ul class="space-y-2">
       {% for o in items %}
-        <li class="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white p-3">
+        <li class="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
           <div class="min-w-0">
             <div class="truncate font-medium">{{ o.name }}</div>
-            <div class="text-xs text-neutral-400">{{ o.lean.label }} · {{ o.feed_type.name|lower }}{% if not o.enabled %} · <span class="text-amber-600">disabled</span>{% endif %}</div>
+            <div class="text-xs text-neutral-400 dark:text-neutral-500">{{ o.lean.label }} · {{ o.feed_type.name|lower }}{% if not o.enabled %} · <span class="text-amber-600">disabled</span>{% endif %}</div>
           </div>
           {% if o.homepage %}<a href="{{ o.homepage }}" target="_blank" rel="noopener" class="ml-auto text-xs text-brand-600 hover:underline">site ↗</a>{% endif %}
         </li>

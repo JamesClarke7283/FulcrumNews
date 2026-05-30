@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from quart import Blueprint, jsonify, request
 
+from ... import progress
 from ...models import Story
 from ...models.enums import BlindspotType
 from .feed import PAGE_SIZE, _filtered_query
@@ -23,6 +24,11 @@ def _story_brief(s: Story) -> dict:
         "blindspot": _BLINDSPOT_SLUG[s.blindspot_type],
         "updated_at": s.updated_at.isoformat() if s.updated_at else None,
     }
+
+
+@bp.get("/progress")
+async def pipeline_progress():
+    return jsonify(progress.snapshot())
 
 
 @bp.get("/stories")

@@ -28,6 +28,9 @@ dependencies = [
     "feedparser>=6",
     "httpx>=0.28",
     "tenacity>=9",
+    # markdown rendering + sanitization (per-outlet article bodies)
+    "markdown>=3.6",
+    "nh3>=0.2",
     # scheduling + config
     "apscheduler>=3.11,<4",
     "pydantic>=2",

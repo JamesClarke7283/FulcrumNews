@@ -90,6 +90,17 @@ async def get_table():
         return _table
 
 
+async def clear() -> None:
+    """Drop all stored vectors (used by the admin 'Clear cache' action)."""
+    global _conn, _table
+    if _conn is None:
+        _conn = await lancedb.connect_async(settings.lancedb_path)
+    name = settings.lancedb_table
+    if name in await _conn.list_tables():
+        await _conn.drop_table(name)
+    _table = None
+
+
 async def upsert(
     *, lance_id: str, vector: list[float], article_id: int, outlet: str, lean: int, published_at
 ) -> None:

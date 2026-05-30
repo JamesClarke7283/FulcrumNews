@@ -4,40 +4,59 @@
   <h1 class="text-xl font-bold tracking-tight">Admin</h1>
 
   {% if request.args.get('started') %}
-    <div class="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">
-      Refresh started in the background. Reload in a minute to see the latest run.
-    </div>
+    <div class="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">Refresh started in the background — watch the progress bars at the top.</div>
+  {% endif %}
+  {% if request.args.get('saved') %}
+    <div class="mt-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">Settings saved.</div>
+  {% endif %}
+  {% if request.args.get('cleared') %}
+    <div class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">Cache cleared — all stories and vectors removed. Run a refresh to rebuild.</div>
   {% endif %}
 
   <div class="mt-5 grid gap-4 sm:grid-cols-2">
-    <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
+    <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-400">Pipeline</h2>
-      <p class="mt-2 text-sm text-neutral-600">
+      <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
         {% if last_run.running %}<span class="font-medium text-amber-600">● Running…</span>
         {% elif last_run.at %}Last run: <span class="font-medium">{{ last_run.at }}</span>
         {% else %}Never run yet.{% endif %}
       </p>
       {% if last_run.stats %}
-        <pre class="mt-2 overflow-x-auto rounded bg-neutral-50 p-3 text-xs text-neutral-600">{{ last_run.stats }}</pre>
+        <pre class="mt-2 overflow-x-auto rounded bg-neutral-50 p-3 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">{{ last_run.stats }}</pre>
       {% endif %}
-      {% if last_run.error %}
-        <p class="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">{{ last_run.error }}</p>
-      {% endif %}
+      {% if last_run.error %}<p class="mt-2 rounded bg-red-50 p-2 text-xs text-red-700">{{ last_run.error }}</p>{% endif %}
       <form method="post" action="{{ url_for('admin.refresh') }}" class="mt-4">
         <input type="hidden" name="token" value="{{ token }}">
-        <button class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600/90">
-          Refresh now
-        </button>
+        <button class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600/90">Refresh now</button>
       </form>
     </div>
 
-    <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-400">Outlets</h2>
-      <p class="mt-2 text-sm text-neutral-600">{{ outlet_count }} enabled outlet{{ '' if outlet_count == 1 else 's' }}.</p>
-      <a href="{{ url_for('admin.outlets', token=token) }}"
-         class="mt-4 inline-block rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700">
-        Manage outlets
-      </a>
+    <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-400">Outlets &amp; stories</h2>
+      <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{{ outlet_count }} enabled outlet{{ '' if outlet_count == 1 else 's' }} · {{ story_count }} multi-source stor{{ 'y' if story_count == 1 else 'ies' }}.</p>
+      <a href="{{ url_for('admin.outlets', token=token) }}" class="mt-4 inline-block rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700">Manage outlets</a>
+    </div>
+
+    <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-400">Exploration window</h2>
+      <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">How far back stories are clustered together. Default 14 days (2 weeks), up to {{ max_window_days }}.</p>
+      <form method="post" action="{{ url_for('admin.update_settings') }}" class="mt-4 flex items-center gap-2">
+        <input type="hidden" name="token" value="{{ token }}">
+        <input type="number" name="window_days" min="1" max="{{ max_window_days }}" value="{{ window_days }}"
+               class="w-20 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand-600 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
+        <span class="text-sm text-neutral-500 dark:text-neutral-400">days</span>
+        <button class="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700">Save</button>
+      </form>
+    </div>
+
+    <div class="rounded-xl border border-red-200 bg-white p-5 shadow-sm dark:border-red-900/50 dark:bg-neutral-900">
+      <h2 class="text-sm font-semibold uppercase tracking-wide text-red-500">Danger zone</h2>
+      <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">Clear all cached articles, stories and vectors (the outlet roster is kept). The next refresh rebuilds from scratch.</p>
+      <form method="post" action="{{ url_for('admin.clear_cache') }}" class="mt-4"
+            onsubmit="return confirm('Clear ALL stories, articles and vectors? This cannot be undone.');">
+        <input type="hidden" name="token" value="{{ token }}">
+        <button class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500">Clear cache</button>
+      </form>
     </div>
   </div>
 

@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import httpx
 from lxml import html as lxml_html
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+from ... import runtime
 from ...config import settings
 from .base import RawArticle, canonicalize_url, to_utc
 
@@ -28,12 +29,13 @@ def _html_to_text(body_html: str) -> str:
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=20), reraise=True)
-async def _search(client: httpx.AsyncClient, section: str, page_size: int) -> dict:
+async def _search(client: httpx.AsyncClient, section: str, page_size: int, from_date: str) -> dict:
     params = {
         "section": section,
         "show-fields": "body,byline,trailText",
         "order-by": "newest",
-        "page-size": page_size,
+        "from-date": from_date,  # pull the whole exploration window
+        "page-size": min(page_size, 200),  # Guardian API max
         "api-key": settings.guardian_api_key,
     }
     resp = await client.get(GUARDIAN_SEARCH, params=params)
@@ -42,14 +44,17 @@ async def _search(client: httpx.AsyncClient, section: str, page_size: int) -> di
 
 
 async def fetch_guardian(
-    client: httpx.AsyncClient, outlet, *, page_size: int = 50
+    client: httpx.AsyncClient, outlet, *, page_size: int = 200
 ) -> list[RawArticle]:
     if not settings.guardian_api_key:
         logger.info("GUARDIAN_API_KEY not set — skipping Guardian outlet")
         return []
 
     section = (outlet.config or {}).get("section") or outlet.feed_url or "world"
-    data = await _search(client, section, page_size)
+    from_date = (
+        datetime.now(timezone.utc) - timedelta(hours=runtime.get_window_hours())
+    ).date().isoformat()
+    data = await _search(client, section, page_size, from_date)
     results = data.get("response", {}).get("results", [])
 
     articles: list[RawArticle] = []

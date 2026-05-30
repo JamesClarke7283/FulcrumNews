@@ -27,6 +27,7 @@ def build_pipeline():
     g.add_node("assign_clusters", nodes.assign_clusters)
     g.add_node("compute_bias_blindspot", nodes.compute_bias_blindspot)
     g.add_node("summarize_cluster", nodes.summarize_cluster)
+    g.add_node("format_bodies", nodes.format_bodies)
 
     g.add_edge(START, "fetch_sources")
     g.add_edge("fetch_sources", "extract_bodies")
@@ -34,18 +35,21 @@ def build_pipeline():
     g.add_edge("embed", "cluster")
     g.add_edge("cluster", "assign_clusters")
     g.add_edge("assign_clusters", "compute_bias_blindspot")
+    # Summarizing and formatting are independent → run them concurrently.
     g.add_edge("compute_bias_blindspot", "summarize_cluster")
+    g.add_edge("compute_bias_blindspot", "format_bodies")
     g.add_edge("summarize_cluster", END)
+    g.add_edge("format_bodies", END)
     return g.compile()
 
 
 async def run_pipeline(window_hours: int | None = None) -> dict:
     """Invoke one full pipeline pass. Returns the run stats."""
-    from ..config import settings
+    from .. import runtime
 
     graph = build_pipeline()
     initial: PipelineState = {
-        "window_hours": window_hours or settings.cluster_window_hours,
+        "window_hours": window_hours or runtime.get_window_hours(),
         "new_article_ids": [],
         "vectors": {},
         "touched_story_ids": [],
