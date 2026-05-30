@@ -1,0 +1,25 @@
+# Secrets
+.env
+
+# Runtime data (SQLite + LanceDB)
+data/
+
+# Built CSS artifact
+src/fulcrumnews/static/css/output.css
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Tailwind standalone binary cache
+.pytailwindcss/
+
+# Editor
+.idea/
+.vscode/

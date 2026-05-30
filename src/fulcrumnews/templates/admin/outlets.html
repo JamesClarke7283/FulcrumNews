@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Manage outlets — FulcrumNews{% endblock %}
+{% block content %}
+  <div class="mb-5 flex items-center justify-between">
+    <h1 class="text-xl font-bold tracking-tight">Manage outlets</h1>
+    <a href="{{ url_for('admin.outlet_new', token=token) }}"
+       class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600/90">+ Add outlet</a>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+      <thead class="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-400">
+        <tr>
+          <th class="px-4 py-2.5">Outlet</th>
+          <th class="px-4 py-2.5">Lean</th>
+          <th class="px-4 py-2.5">Source</th>
+          <th class="px-4 py-2.5">Status</th>
+          <th class="px-4 py-2.5 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-neutral-100">
+        {% for o in outlets %}
+          <tr>
+            <td class="px-4 py-3">
+              <div class="font-medium">{{ o.name }}</div>
+              <div class="max-w-xs truncate text-xs text-neutral-400">{{ o.feed_url }}</div>
+            </td>
+            <td class="px-4 py-3">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-bias-{{ o.lean | bucket }}"></span>{{ o.lean.label }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-neutral-500">{{ o.feed_type.name | lower }}</td>
+            <td class="px-4 py-3">
+              {% if o.enabled %}<span class="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">enabled</span>
+              {% else %}<span class="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-500">disabled</span>{% endif %}
+            </td>
+            <td class="px-4 py-3 text-right">
+              <a href="{{ url_for('admin.outlet_edit', slug=o.slug, token=token) }}" class="text-brand-600 hover:underline">Edit</a>
+              <form method="post" action="{{ url_for('admin.outlet_delete', slug=o.slug) }}" class="ml-3 inline"
+                    onsubmit="return confirm('Delete {{ o.name }}? Its articles will be detached.');">
+                <input type="hidden" name="token" value="{{ token }}">
+                <button class="text-red-600 hover:underline">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <a href="{{ url_for('admin.dashboard', token=token) }}" class="mt-4 inline-block text-sm text-neutral-500 hover:text-brand-600">← Back to admin</a>
+{% endblock %}

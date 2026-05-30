@@ -1,0 +1,18 @@
+{# Stacked left/center/right coverage bar. Expects `story` with *_count fields. #}
+{% set total = (story.left_count + story.center_count + story.right_count) %}
+{% set t = total or 1 %}
+{% set pl = (story.left_count / t * 100) | round | int %}
+{% set pc = (story.center_count / t * 100) | round | int %}
+{% set pr = (story.right_count / t * 100) | round | int %}
+<div role="img" aria-label="Coverage: {{ pl }}% left, {{ pc }}% center, {{ pr }}% right">
+  <div class="flex h-2.5 w-full overflow-hidden rounded-full bg-neutral-200">
+    {% if story.left_count %}<div class="bg-bias-left" style="width: {{ pl }}%"></div>{% endif %}
+    {% if story.center_count %}<div class="bg-bias-center" style="width: {{ pc }}%"></div>{% endif %}
+    {% if story.right_count %}<div class="bg-bias-right" style="width: {{ pr }}%"></div>{% endif %}
+  </div>
+  <div class="mt-1.5 flex justify-between text-[11px] font-medium">
+    <span class="text-bias-left">{{ pl }}% Left</span>
+    <span class="text-bias-center">{{ pc }}% Center</span>
+    <span class="text-bias-right">{{ pr }}% Right</span>
+  </div>
+</div>

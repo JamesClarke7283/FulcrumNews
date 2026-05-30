@@ -1,0 +1,13 @@
+{# Blindspot badge. Expects `story`. BlindspotType: 1=LEFT under-covers, 2=RIGHT under-covers. #}
+{% set bs = story.blindspot_type | int %}
+{% if bs == 2 %}
+  <span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-semibold text-bias-right ring-1 ring-bias-right/30"
+        title="The right side of the spectrum is under-covering this story.">
+    ⚠ Blindspot for the Right
+  </span>
+{% elif bs == 1 %}
+  <span class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-bias-left ring-1 ring-bias-left/30"
+        title="The left side of the spectrum is under-covering this story.">
+    ⚠ Blindspot for the Left
+  </span>
+{% endif %}

@@ -1,0 +1,7 @@
+{# Per-bucket source counts. Expects `story`. A 0 on one side signals a blindspot. #}
+<div class="flex items-center gap-1.5 text-[11px] font-medium text-neutral-500">
+  <span class="text-neutral-400">{{ story.source_count }} source{{ '' if story.source_count == 1 else 's' }}</span>
+  <span class="ml-1 inline-flex items-center rounded bg-bias-left/10 px-1.5 py-0.5 text-bias-left">L·{{ story.left_count }}</span>
+  <span class="inline-flex items-center rounded bg-bias-center/10 px-1.5 py-0.5 text-bias-center">C·{{ story.center_count }}</span>
+  <span class="inline-flex items-center rounded bg-bias-right/10 px-1.5 py-0.5 text-bias-right">R·{{ story.right_count }}</span>
+</div>

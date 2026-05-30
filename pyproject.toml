@@ -1,0 +1,67 @@
+[project]
+name = "fulcrumnews"
+version = "0.1.0"
+description = "FulcrumNews — an open-source, self-hostable Ground News replacement (cross-outlet news with left/center/right Blindspot analysis and AI briefings)."
+readme = "README.md"
+requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [{ name = "FulcrumNews" }]
+dependencies = [
+    # web
+    "quart>=0.20",
+    "hypercorn>=0.18",
+    "jinja2>=3.1",
+    # storage (relational + vector)
+    "tortoise-orm>=0.21",
+    "aiosqlite>=0.20",
+    "lancedb>=0.33",
+    "pyarrow>=24",
+    "numpy>=2.4",
+    # orchestration + LLM
+    "langgraph>=1.2",
+    "langchain>=1.3",
+    "langchain-openai>=1.2",
+    "openai>=2",
+    # ingestion
+    "trafilatura>=2",
+    "lxml>=6.1",
+    "feedparser>=6",
+    "httpx>=0.28",
+    "tenacity>=9",
+    # scheduling + config
+    "apscheduler>=3.11,<4",
+    "pydantic>=2",
+    "pydantic-settings>=2",
+    "python-dotenv>=1",
+    # css build (no Node)
+    "pytailwindcss>=0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+fulcrum = "fulcrumnews.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fulcrumnews"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

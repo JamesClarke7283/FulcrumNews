@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% set cur_min = filters.get('min', '2') %}
+
+{# Pill that preserves all other active filters and only flips `key`. #}
+{% macro pill(label, key, val) %}
+  {% set a = dict(filters.items()) %}
+  {% set _ = a.pop('page', None) %}
+  {% set _ = a.pop('started', None) %}
+  {% if val is none %}{% set _ = a.pop(key, None) %}{% else %}{% set _ = a.update({key: val}) %}{% endif %}
+  {% set active = (filters.get(key) == val) or (val is none and not filters.get(key)) %}
+  <a href="{{ url_for('feed.feed', **a) }}"
+     class="rounded-full px-3 py-1 text-sm font-medium {{ 'bg-brand-600 text-white' if active else 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100' }}">{{ label }}</a>
+{% endmacro %}
+
+{% macro minpill(label, val) %}
+  {% set a = dict(filters.items()) %}
+  {% set _ = a.pop('page', None) %}
+  {% set _ = a.pop('started', None) %}
+  {% set _ = a.update({'min': val}) %}
+  {% set active = (cur_min == val) %}
+  <a href="{{ url_for('feed.feed', **a) }}"
+     class="rounded-full px-3 py-1 text-sm font-medium {{ 'bg-brand-600 text-white' if active else 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100' }}">{{ label }}</a>
+{% endmacro %}
+
+{% block content %}
+  {% if filters.get('started') %}
+    <div class="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800 ring-1 ring-green-200">
+      Reprocessing all feeds in the background — reload in a minute to see new and updated stories.
+    </div>
+  {% endif %}
+
+  <div class="mb-5 flex flex-col gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-xl font-bold tracking-tight">Stories across the spectrum</h1>
+      <div class="flex items-center gap-2">
+        <form method="get" action="{{ url_for('feed.feed') }}" class="flex items-center gap-2">
+          <input type="search" name="q" value="{{ filters.get('q','') }}" placeholder="Search headlines…"
+                 class="w-40 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm focus:border-brand-600 focus:outline-none sm:w-52">
+          <button class="rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700">Search</button>
+        </form>
+        <form method="post" action="{{ url_for('feed.refresh') }}">
+          <button class="flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-600/90"
+                  {{ 'disabled' if last_run.running else '' }}>
+            ↻ {{ 'Refreshing…' if last_run.running else 'Refresh feeds' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-xs font-semibold uppercase tracking-wide text-neutral-400">Lean</span>
+      {{ pill('All', 'lean', none) }}
+      {{ pill('Left', 'lean', 'left') }}
+      {{ pill('Center', 'lean', 'center') }}
+      {{ pill('Right', 'lean', 'right') }}
+      <span class="ml-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">Blindspots</span>
+      {{ pill('Any', 'blindspot', 'any') }}
+      {{ pill('Left', 'blindspot', 'left') }}
+      {{ pill('Right', 'blindspot', 'right') }}
+      <span class="ml-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">Min sources</span>
+      {{ minpill('1', '1') }}
+      {{ minpill('2', '2') }}
+      {{ minpill('3', '3') }}
+      {{ minpill('4', '4') }}
+    </div>
+  </div>
+
+  {% if stories %}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for story in stories %}{% include "partials/_story_card.html" %}{% endfor %}
+    </div>
+
+    <div class="mt-8 flex items-center justify-between text-sm">
+      {% if page > 1 %}
+        <a class="rounded-lg bg-white px-4 py-2 font-medium ring-1 ring-neutral-200 hover:bg-neutral-100"
+           href="{{ url_for('feed.feed', lean=filters.get('lean'), blindspot=filters.get('blindspot'), q=filters.get('q'), min=filters.get('min'), page=page-1) }}">← Newer</a>
+      {% else %}<span></span>{% endif %}
+      <span class="text-neutral-400">Page {{ page }} · {{ total }} stories · {{ min_sources }}+ sources</span>
+      {% if has_next %}
+        <a class="rounded-lg bg-white px-4 py-2 font-medium ring-1 ring-neutral-200 hover:bg-neutral-100"
+           href="{{ url_for('feed.feed', lean=filters.get('lean'), blindspot=filters.get('blindspot'), q=filters.get('q'), min=filters.get('min'), page=page+1) }}">Older →</a>
+      {% else %}<span></span>{% endif %}
+    </div>
+  {% else %}
+    <div class="rounded-xl border border-dashed border-neutral-300 bg-white p-10 text-center">
+      <p class="text-neutral-500">No stories with {{ min_sources }}+ sources yet.</p>
+      <p class="mt-1 text-sm text-neutral-400">Click <strong>Refresh feeds</strong> above to ingest the latest news, lower the minimum sources, or wait for clustering to find cross-outlet matches.</p>
+    </div>
+  {% endif %}
+{% endblock %}
