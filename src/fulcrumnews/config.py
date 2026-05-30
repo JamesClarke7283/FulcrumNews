@@ -68,8 +68,9 @@ class Settings(BaseSettings):
     # Volume controls (matter once you have many outlets). High so we grab each feed's
     # full depth each pull; the 2-week corpus then builds additively across refreshes.
     rss_max_items: int = Field(default=120, alias="RSS_MAX_ITEMS")
-    # Summaries: every story with >= this many sources gets one (1 = all stories).
-    summary_min_sources: int = Field(default=1, alias="SUMMARY_MIN_SOURCES")
+    # Summaries: every story with >= this many sources gets one. Default 2 = every story
+    # shown in the feed. Set to 1 to also summarize single-source stories (far more calls).
+    summary_min_sources: int = Field(default=2, alias="SUMMARY_MIN_SOURCES")
     # 0 = no cap (summarize all stale qualifying stories).
     max_summaries_per_run: int = Field(default=0, alias="MAX_SUMMARIES_PER_RUN")
     # Concurrent LLM summary calls (DB writes stay serialized).
