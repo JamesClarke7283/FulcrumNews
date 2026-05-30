@@ -297,11 +297,15 @@ async def compute_bias_blindspot(state: PipelineState) -> PipelineState:
 async def summarize_cluster(state: PipelineState) -> PipelineState:
     story_ids = state.get("touched_story_ids") or []
     summarized = 0
-    for sid in story_ids:
-        story = await Story.get_or_none(id=sid)
-        if story is None or story.source_count < 2 or not story.summary_stale:
-            continue
 
+    # Bound cost/time: summarize the most-corroborated stale stories first, up to a cap.
+    candidates = await Story.filter(
+        id__in=story_ids, summary_stale=True, source_count__gte=2
+    ).order_by("-source_count")
+    candidates = candidates[: settings.max_summaries_per_run]
+
+    for story in candidates:
+        sid = story.id
         arts = await Article.filter(story_id=sid).prefetch_related("outlet")
         # one (richest) article per outlet to avoid syndication double-counting
         by_outlet: dict[int, Article] = {}

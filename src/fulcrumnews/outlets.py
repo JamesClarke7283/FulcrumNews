@@ -10,6 +10,20 @@ from __future__ import annotations
 
 from .models.enums import FeedType, Lean
 
+
+def _rss(name: str, slug: str, lean: Lean, feed_url: str, homepage: str, enabled: bool = True) -> dict:
+    """Shorthand for an RSS outlet roster entry."""
+    return {
+        "name": name,
+        "slug": slug,
+        "lean": lean,
+        "feed_type": FeedType.RSS,
+        "feed_url": feed_url,
+        "homepage": homepage,
+        "enabled": enabled,
+    }
+
+
 DEFAULT_OUTLET_ROSTER: list[dict] = [
     {
         "name": "The Guardian",
@@ -178,4 +192,33 @@ DEFAULT_OUTLET_ROSTER: list[dict] = [
         "homepage": "https://www.express.co.uk",
         "enabled": True,
     },
+    # ── More UK outlets ──────────────────────────────────────────────────────
+    _rss("i (inews)", "inews", Lean.CENTER, "https://inews.co.uk/feed", "https://inews.co.uk"),
+    _rss("Channel 4 News", "channel4", Lean.CENTER, "https://www.channel4.com/news/feed", "https://www.channel4.com/news"),
+    _rss("New Statesman", "newstatesman", Lean.LEFT, "https://www.newstatesman.com/feed", "https://www.newstatesman.com"),
+    _rss("The Canary", "thecanary", Lean.LEFT, "https://www.thecanary.co/feed/", "https://www.thecanary.co"),
+    _rss("UnHerd", "unherd", Lean.LEAN_RIGHT, "https://unherd.com/feed/", "https://unherd.com"),
+    _rss("Daily Star", "dailystar", Lean.RIGHT, "https://www.dailystar.co.uk/?service=rss", "https://www.dailystar.co.uk"),
+    # ── US outlets ───────────────────────────────────────────────────────────
+    _rss("Vox", "vox", Lean.LEFT, "https://www.vox.com/rss/index.xml", "https://www.vox.com"),
+    _rss("Mother Jones", "motherjones", Lean.LEFT, "https://www.motherjones.com/feed/", "https://www.motherjones.com"),
+    _rss("The Intercept", "theintercept", Lean.LEFT, "https://theintercept.com/feed/?rss", "https://theintercept.com"),
+    _rss("Slate", "slate", Lean.LEFT, "https://slate.com/feeds/all.rss", "https://slate.com"),
+    _rss("CNN", "cnn", Lean.LEAN_LEFT, "http://rss.cnn.com/rss/cnn_topstories.rss", "https://www.cnn.com"),
+    _rss("NBC News", "nbcnews", Lean.LEAN_LEFT, "https://feeds.nbcnews.com/nbcnews/public/news", "https://www.nbcnews.com"),
+    _rss("ABC News", "abcnews", Lean.LEAN_LEFT, "https://abcnews.go.com/abcnews/topstories", "https://abcnews.go.com"),
+    _rss("Politico", "politico", Lean.LEAN_LEFT, "https://rss.politico.com/politics-news.xml", "https://www.politico.com"),
+    _rss("The New York Times", "nytimes", Lean.LEAN_LEFT, "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml", "https://www.nytimes.com"),
+    _rss("NPR", "npr", Lean.CENTER, "https://feeds.npr.org/1001/rss.xml", "https://www.npr.org"),
+    _rss("CBS News", "cbsnews", Lean.CENTER, "https://www.cbsnews.com/latest/rss/main", "https://www.cbsnews.com"),
+    _rss("Newsweek", "newsweek", Lean.CENTER, "https://www.newsweek.com/rss", "https://www.newsweek.com"),
+    _rss("The Hill", "thehill", Lean.CENTER, "https://thehill.com/news/feed/", "https://thehill.com"),
+    _rss("Fox News", "foxnews", Lean.RIGHT, "https://moxie.foxnews.com/google-publisher/latest.xml", "https://www.foxnews.com"),
+    _rss("New York Post", "nypost", Lean.RIGHT, "https://nypost.com/feed/", "https://nypost.com"),
+    _rss("Washington Examiner", "waexaminer", Lean.RIGHT, "https://www.washingtonexaminer.com/feed/", "https://www.washingtonexaminer.com"),
+    _rss("National Review", "nationalreview", Lean.RIGHT, "https://www.nationalreview.com/feed/", "https://www.nationalreview.com"),
+    _rss("The Federalist", "federalist", Lean.RIGHT, "https://thefederalist.com/feed/", "https://thefederalist.com"),
+    _rss("The Washington Times", "washtimes", Lean.RIGHT, "https://www.washingtontimes.com/rss/headlines/news/politics/", "https://www.washingtontimes.com"),
+    _rss("The Daily Wire", "dailywire", Lean.RIGHT, "https://www.dailywire.com/feeds/rss.xml", "https://www.dailywire.com"),
+    _rss("Breitbart", "breitbart", Lean.RIGHT, "https://feeds.feedburner.com/breitbart", "https://www.breitbart.com"),
 ]

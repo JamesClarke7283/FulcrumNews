@@ -39,8 +39,12 @@ def _clean_summary(text: str | None) -> str | None:
     return stripped[:1024] or None
 
 
-async def fetch_rss(client: httpx.AsyncClient, outlet, *, limit: int = 30) -> list[RawArticle]:
+async def fetch_rss(client: httpx.AsyncClient, outlet, *, limit: int | None = None) -> list[RawArticle]:
     """Fetch + parse an RSS/Atom feed. Bodies are filled later by extract_body()."""
+    from ...config import settings
+
+    if limit is None:
+        limit = settings.rss_max_items
     loop = asyncio.get_running_loop()
     try:
         resp = await client.get(outlet.feed_url)

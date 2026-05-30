@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     blindspot_min_share: float = Field(default=0.15, alias="BLINDSPOT_MIN_SHARE")
 
     # Scheduler / server
+    # Volume controls (matter once you have many outlets).
+    rss_max_items: int = Field(default=20, alias="RSS_MAX_ITEMS")
+    max_summaries_per_run: int = Field(default=40, alias="MAX_SUMMARIES_PER_RUN")
     refresh_interval_hours: float = Field(default=3, alias="REFRESH_INTERVAL_HOURS")
     admin_token: str = Field(default="", alias="ADMIN_TOKEN")
     host: str = Field(default="0.0.0.0", alias="HOST")
